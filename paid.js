@@ -54,13 +54,6 @@ module.exports = function (ctx, cb) {
     return;
   }
   
-  var amount = params[0];
-  var reason = params.slice(1, params.length).join(' ').trim();
-  if(reason.startsWith('for')){
-    reason = reason.slice(3, reason.length).trim();
-  }
-  var messageTemplate = `Thanks ${username} for paying ${amount} for ${reason}`;
-  
   ctx.storage.get(function (error, data) {
     if (error) return cb(error);
     
@@ -75,10 +68,25 @@ module.exports = function (ctx, cb) {
       data[key] = [];
     }
     
+    var amount = params[0];
+    var reason = params.slice(1, params.length).join(' ').trim();
+    if(reason.startsWith('for')){
+      reason = reason.slice(3, reason.length).trim();
+    }
+    
+    var totalPaid = 0;
+    data[key].map(p => {
+      if(p.username == username){
+        totalPaid += parseInt(p.amount)
+      }
+    });
+    
+    var messageTemplate = `Thanks ${username} for paying ${amount} for ${reason}, Your total payment for this month is ${totalPaid}`;
+  
     data[key].push({
       username: username,
       date: date.getTime(),
-      amount: amount,
+      amount: parseInt(amount),
       reason: reason
     });
     
